@@ -1,7 +1,6 @@
-# 🤖 ML Journey — From Scratch to Deployment
+# 🤖 ML Journey
 
-> A structured, self-documented learning path through Machine Learning, Neural Networks, and MLOps.  
-> Topics guided by a senior mentor, extended with additional depth and context.
+> A structured, self-documented learning path through Machine Learning, Neural Networks, and MLOps.
 
 ---
 
