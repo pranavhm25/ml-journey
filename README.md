@@ -1,10 +1,10 @@
-# 🤖 ML Journey
+# ML Journey
 
 > A structured, self-documented learning path through Machine Learning, Neural Networks, and MLOps.
 
 ---
 
-## 📚 Table of Contents
+## Table of Contents
 
 | # | Topic | Status |
 |---|-------|--------|
@@ -18,7 +18,7 @@
 
 ---
 
-## 🗂️ Repo Structure
+## Repo Structure
 
 ```
 ml-journey/
@@ -62,7 +62,7 @@ ml-journey/
 
 ---
 
-## 🚀 How to Use This Repo
+## How to Use This Repo
 
 1. Follow topics **in order** — each builds on the previous
 2. Each folder has its own `README.md` with theory + code explanations
@@ -75,12 +75,10 @@ pip install numpy pandas matplotlib seaborn scikit-learn tensorflow torch jupyte
 ```
 
 ---
-## Future Development: Transformers, RAG, fine-tuning
 
-## 🧑‍💻 Author
+# Future Development: Transformers, RAG, fine-tuning, etc.
+
+
+## Author
 
 **H M Pranav** — Information Science & Engineering, M S Ramaiah Institute of Technology
-
----
-
-*"The best way to learn ML is to implement it, break it, and fix it."*
