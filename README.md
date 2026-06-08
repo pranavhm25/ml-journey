@@ -76,23 +76,11 @@ pip install numpy pandas matplotlib seaborn scikit-learn tensorflow torch jupyte
 ```
 
 ---
-
-## 📌 Topics NOT in the original syllabus (added for completeness)
-
-- Cross-validation strategies (k-fold, stratified)
-- Hyperparameter tuning (GridSearchCV, RandomSearchCV)
-- Pipelines in scikit-learn
-- Feature engineering basics
-- Model explainability (SHAP, feature importance)
-- MLflow for experiment tracking
-- REST API for model serving (FastAPI)
-- Future: Transformers, RAG, fine-tuning
-
----
+## Future Development: Transformers, RAG, fine-tuning
 
 ## 🧑‍💻 Author
 
-**Pranav** — Information Science & Engineering, M S Ramaiah Institute of Technology
+**H M Pranav** — Information Science & Engineering, M S Ramaiah Institute of Technology
 
 ---
 
