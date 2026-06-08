@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.env
+*.egg-info/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ML Models — NEVER commit large model files
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.pt
+*.pth
+*.joblib
+*.onnx
+*.pb
+*.tflite
+models/
+saved_models/
+checkpoints/
+
+# Datasets — too large for git
+*.csv
+data/
+datasets/
+raw/
+
+# Plot outputs
+plots/*.png
+plots/*.jpg
+plots/*.svg
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
