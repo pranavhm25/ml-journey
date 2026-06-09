@@ -189,10 +189,11 @@ While AdaBoost adjusts sample weights based on classification errors, Gradient B
 #### 7.3 XGBoost (Extreme Gradient Boosting)
 XGBoost is a highly optimized, scalable implementation of Gradient Boosting designed for maximum computational efficiency and predictive power.
 
-* **The Core Mechanism:** * **Second-Order Optimization:** While standard GBM uses only the first derivative (gradient), XGBoost uses a Taylor expansion up to the **second derivative** (Hessian matrix) of the loss function, allowing for faster and more precise convergence.
+* **The Core Mechanism:**
+  * **Second-Order Optimization:** While standard GBM uses only the first derivative (gradient), XGBoost uses a Taylor expansion up to the **second derivative** (Hessian matrix) of the loss function, allowing for faster and more precise convergence.
   * **Built-in Regularization:** Adds L1 (Lasso) and L2 (Ridge) penalties directly to the tree-building objective function to control tree complexity and prevent overfitting.
   * **System Features:** Supports parallel tree building, block structure caching, and handles missing values natively by automatically learning the best default splitting direction for empty cells.
-* **Industry Status:** The historical standard for winning tabular data competitions (Kaggle).
+  * **Industry Status:** The historical standard for winning tabular data competitions (Kaggle).
 
 #### 7.4 LightGBM (Light Gradient Boosting Machine)
 Developed by Microsoft, LightGBM was engineered to handle massive datasets with faster training speeds and lower memory consumption than standard XGBoost.
