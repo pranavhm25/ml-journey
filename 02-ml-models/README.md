@@ -221,69 +221,6 @@ Developed by Yandex, CatBoost is optimized out of the box for datasets that cont
 | **Tree Growth Strategy** | Stumps (1-Level) | Level-wise | Level-wise | Leaf-wise (Asymmetric) | Level-wise (Symmetric) |
 | **Speed & Scaling** | Fast (Simple) | Slow (Sequential) | Fast (Parallelized) | **Fastest** (GOSS/EFB) | Moderate (Fast inference) |
 | **Overfitting Risk** | Low-Moderate | High (If untuned) | Low-Moderate (Regularized) | High (Requires depth limits) | **Lowest** (Ordered boosting) |
-| **Categorical Handling** | Manual | Manual | Manual / Basic | Native Integer Support | **Advanced Native** |## 7. Boosting
-
-**Boosting** is an ensemble learning technique that transforms a collection of weak learners (models that perform only slightly better than random guessing) into a single strong learner. Unlike Bagging (e.g., Random Forest), which trains models in parallel, Boosting trains models **sequentially**. Each new model is explicitly trained to correct the errors made by the models that came before it.
-
-> **Analogy:** Imagine a student preparing for an exam. Instead of re-reading the entire textbook equally, they take a practice test, identify the exact problems they got wrong, and spend the next hour studying *only* those specific weak areas. They repeat this cycle until they minimize their mistakes.
-
-
-
----
-
-### Types of Boosting
-
-#### 7.1 AdaBoost (Adaptive Boosting)
-AdaBoost is the foundational boosting algorithm. It typically uses "decision stumps"—decision trees with a depth of exactly one layer (a single split)—as its weak learners.
-
-* **The Core Mechanism:** It adjusts data weights dynamically. Every sample starts with equal weight. After a tree is trained, the algorithm increases the weights of misclassified samples and decreases the weights of correctly classified ones. The next tree is forced to focus its attention on the high-weight, difficult samples.
-* **Mathematical Intuition:** The final prediction is a weighted majority vote, where more accurate trees carry higher voting power ($\alpha_t$):
-  $$\text{Final Output} = \text{sign}\left( \sum_{t=1}^{T} \alpha_t h_t(x) \right)$$
-  Where $h_t(x)$ is the prediction of stump $t$, and $\alpha_t = \frac{1}{2} \ln\left(\frac{1 - \epsilon_t}{\epsilon_t}\right)$ (derived from the error rate $\epsilon_t$).
-
-#### 7.2 Gradient Boosting Machine (GBM)
-While AdaBoost adjusts sample weights based on classification errors, Gradient Boosting optimizes a differentiable loss function (like Mean Squared Error or Log Loss) by fitting new models directly to the **residuals** (the errors) of the previous ensemble.
-
-* **The Core Mechanism:** Instead of changing data weights, the next weak learner (typically a shallow decision tree) predicts the *leftover error* made by the existing combination of trees. 
-* **Mathematical Intuition:** Each step moves the ensemble's predictions down the gradient of the loss function (gradient descent):
-  $$F_m(x) = F_{m-1}(x) + \eta h_m(x)$$
-  Where $F_{m-1}(x)$ is the current ensemble prediction, $h_m(x)$ is the new tree trained on the residuals, and $\eta$ (eta) is the learning rate/shrinkage factor used to control step size and prevent overfitting.
-
-#### 7.3 XGBoost (Extreme Gradient Boosting)
-XGBoost is a highly optimized, scalable implementation of Gradient Boosting designed for maximum computational efficiency and predictive power.
-
-* **The Core Mechanism:** * **Second-Order Optimization:** While standard GBM uses only the first derivative (gradient), XGBoost uses a Taylor expansion up to the **second derivative** (Hessian matrix) of the loss function, allowing for faster and more precise convergence.
-  * **Built-in Regularization:** Adds L1 (Lasso) and L2 (Ridge) penalties directly to the tree-building objective function to control tree complexity and prevent overfitting.
-  * **System Features:** Supports parallel tree building, block structure caching, and handles missing values natively by automatically learning the best default splitting direction for empty cells.
-* **Industry Status:** The historical standard for winning tabular data competitions (Kaggle).
-
-#### 7.4 LightGBM (Light Gradient Boosting Machine)
-Developed by Microsoft, LightGBM was engineered to handle massive datasets with faster training speeds and lower memory consumption than standard XGBoost.
-
-* **The Core Mechanism:**
-  * **Leaf-wise Growth:** Most boosting frameworks grow trees level-by-level (horizontally). LightGBM grows trees leaf-wise (vertically). It chooses the specific leaf that will reduce the overall loss the most, resulting in deeper, asymmetric trees that achieve higher accuracy faster (though it requires careful tuning via max_depth to avoid overfitting).
-  * **GOSS & EFB:** Uses *Gradient-based One-Side Sampling* (keeping instances with large gradients and downsampling those with small gradients) and *Exclusive Feature Bundling* to drastically reduce the number of data points and features processed during splits.
-
-
-
-#### 7.5 CatBoost (Categorical Boosting)
-Developed by Yandex, CatBoost is optimized out of the box for datasets that contain heavily categorical text or structural features.
-
-* **The Core Mechanism:**
-  * **Symmetric Trees:** It builds oblivious/symmetric trees where the same splitting criteria is used across the entire level of the tree. This acts as a regularizer and makes execution during prediction incredibly fast.
-  * **Ordered Boosting:** Traditional boosting suffers from target leakage because the residuals used at a step are computed using the same target values. CatBoost uses a permutation-based approach to compute residuals without leaking future target data.
-  * **Native Categorical Support:** Automatically handles categorical features using advanced target statistics Encodings, completely eliminating the need for manual One-Hot or Label Encoding before training.
-
----
-
-### Structural Comparison
-
-| Feature / Metric | AdaBoost | GBM | XGBoost | LightGBM | CatBoost |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Weak Learner Split** | Sample Weights | Residuals (Gradient) | Residuals (Grad + Hessian) | Residuals (Grad + Hessian) | Residuals (Permutations) |
-| **Tree Growth Strategy** | Stumps (1-Level) | Level-wise | Level-wise | Leaf-wise (Asymmetric) | Level-wise (Symmetric) |
-| **Speed & Scaling** | Fast (Simple) | Slow (Sequential) | Fast (Parallelized) | **Fastest** (GOSS/EFB) | Moderate (Fast inference) |
-| **Overfitting Risk** | Low-Moderate | High (If untuned) | Low-Moderate (Regularized) | High (Requires depth limits) | **Lowest** (Ordered boosting) |
 | **Categorical Handling** | Manual | Manual | Manual / Basic | Native Integer Support | **Advanced Native** |
 
 ## 8. Extra Depth
