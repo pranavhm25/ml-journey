@@ -259,21 +259,14 @@ A **Random Forest** is an ensemble of unpruned Decision Trees. It relies on the 
 
 Relying on a single, static train/validation split can introduce statistical volatility, particularly on smaller datasets. **K-Fold Cross-Validation** provides a robust statistical alternative by ensuring every single observation is used for both training and validation exactly once.
 
-[=========================== Training Data Pool ===========================]
-
-Iteration 1: [ VAL ] [ TRAIN ] [ TRAIN ] [ TRAIN ] [ TRAIN ] -> Score 1
-
-Iteration 2: [ TRAIN ] [ VAL ] [ TRAIN ] [ TRAIN ] [ TRAIN ] -> Score 2
-
-Iteration 3: [ TRAIN ] [ TRAIN ] [ VAL ] [ TRAIN ] [ TRAIN ] -> Score 3
-
-.
-
-.
-
-.
-
-Iteration K: [ TRAIN ] [ TRAIN ] [ TRAIN ] [ TRAIN ] [ VAL ] -> Score K
+[=========================== Training Data Pool ===========================]<br>
+Iteration 1: [ VAL ] [ TRAIN ] [ TRAIN ] [ TRAIN ] [ TRAIN ] -> Score 1<br>
+Iteration 2: [ TRAIN ] [ VAL ] [ TRAIN ] [ TRAIN ] [ TRAIN ] -> Score 2<br>
+Iteration 3: [ TRAIN ] [ TRAIN ] [ VAL ] [ TRAIN ] [ TRAIN ] -> Score 3<br>
+.<br>
+.<br>
+.<br>
+Iteration K: [ TRAIN ] [ TRAIN ] [ TRAIN ] [ TRAIN ] [ VAL ] -> Score K<br>
 ```
 Final Cross-Validation Metric = Average(Score 1 + Score 2 + ... + Score K)
 ```
@@ -299,7 +292,7 @@ Evaluating a classification model using only a single metric like **Accuracy** c
 | **Recall** <br>(Sensitivity / Hit Rate) | $$\frac{TP}{TP + FN}$$ | **Minimize False Negatives.** Use when missing a positive case is critical or life-threatening (e.g., Medical Diagnostics or Fraud Detection—missing a sick patient or a stolen card is disastrous). |
 | **F1 Score** | $$2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}$$ | The harmonic mean of Precision and Recall. Use when seeking an optimal balance between the two on heavily **imbalanced datasets**. |
 
-where: `TP` = True Positives, `TN` = True Negatives, `FP` = False Positives, `FN` = False Negatives
+> **Key:** `TP` = True Positive | `TN` = True Negative | `FP` = False Positive | `FN` = False Negative
 
 #### Advanced Continuous Metrics
 * **Confusion Matrix:** A full contingency breakdown of predicted versus actual classifications. You should examine this matrix before selecting a metric to see exactly where the misclassifications occur.
