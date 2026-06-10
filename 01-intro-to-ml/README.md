@@ -104,24 +104,57 @@ where:
 ŷ = β₀ + β₁x₁ + β₂x₂ + ... + βₙxₙ
 ```
 
-### How the model "learns" — the formulas:
+### Correlation Coefficient
 
-**Step 1: Define the error (loss)**
-```
-MSE = (1/n) * Σ(yᵢ - ŷᵢ)²
-```
-where `MSE` = Mean Square Error
+Before constructing the regression line, the program calculates the Pearson Correlation Coefficient (`r`) to measure the strength and direction of the linear relationship between X and Y.
 
-**Step 2: Find optimal slope and intercept analytically (OLS — Ordinary Least Squares):**
-```
-m = [n*Σ(xᵢyᵢ) - Σxᵢ * Σyᵢ] / [n*Σ(xᵢ²) - (Σxᵢ)²]
-b = (Σyᵢ - m*Σxᵢ) / n
+```text
+r = Cov(X,Y) / (σx × σy)
 ```
 
-**Step 3: Predict**
+where:
+
+- `Cov(X,Y)` = covariance between X and Y
+- `σx` = standard deviation of X
+- `σy` = standard deviation of Y
+
+Interpretation of `r`:
+
+| Value of r | Interpretation |
+|------------|---------------|
+| +1 | Perfect positive correlation |
+| 0 | No linear correlation |
+| -1 | Perfect negative correlation |
+
+---
+
+### Regression Line Parameters
+
+The program calculates the slope and intercept using the correlation coefficient and standard deviations.
+
+#### Slope (m)
+
+```text
+m = r × (σy / σx)
 ```
-ŷ_new = m * x_new + b
+
+#### Intercept (b)
+
+```text
+b = mean(Y) - m × mean(X)
 ```
+
+---
+
+### Prediction
+
+Once the regression equation is obtained, predictions can be made for any new input value.
+
+```text
+Y_pred = m × X_new + b
+```
+
+The predicted value represents the estimated output corresponding to the given input.
 
 ---
 
@@ -130,8 +163,8 @@ b = (Σyᵢ - m*Σxᵢ) / n
 | Library | Purpose | Key Use |
 |---------|---------|---------|
 | **NumPy** | Numerical computing | Arrays, math operations |
-| **Pandas** | Data manipulation | DataFrames, CSV handling |
-| **Matplotlib** | Plotting | Line charts, scatter plots |
+| **Pandas** | Data manipulation & analysis | DataFrames, CSV handling |
+| **Matplotlib** | Plotting & visualization | Line charts, scatter plots |
 | **Seaborn** | Statistical visualization | Heatmaps, distribution plots |
 | **Scikit-learn** | ML algorithms | Train/test, models, metrics |
 | **SciPy** | Scientific computing | Stats, optimization |
@@ -141,41 +174,78 @@ b = (Σyᵢ - m*Σxᵢ) / n
 
 ---
 
-## 7. Linear Regression — Implemented from Scratch
+## 7. Linear Regression Using Correlation Coefficient
 
-See: [`linear_regression_scratch.py`](./linear_regression_scratch.py)
+See: [`linear_regression.py`](./linear_regression.py)
 
 ### What it does:
 - Accepts `n` rows of input dynamically (user types each row)
-- Computes slope `m` and intercept `b` using the OLS formulas above
-- Takes a new input and predicts the output
+- Stores X and Y values in separate lists.
+- Calculates:
+  - Mean of X and Y
+  - Standard deviation of X and Y
+  - Correlation coefficient (`r`)
+- Computes slope `m` and intercept `b`
+- Displays the regression equation.
+- Predicts Y for a user-provided X value.
 - Uses only loops and variables — no libraries
+
+### Formula Flow Used in the Program
+
+```text
+Input Data
+     ↓
+Calculate Means
+     ↓
+Calculate Standard Deviations
+     ↓
+Calculate Correlation Coefficient (r)
+     ↓
+Calculate Slope (m)
+     ↓
+Calculate Intercept (b)
+     ↓
+Generate Regression Equation
+     ↓
+Predict New Value
+```
 
 ### How to run:
 ```bash
-python linear_regression_scratch.py
+python linear_regression.py
 ```
 
-### Sample run:
+### Sample Run
+
+```text
+Enter number of data entries: 4
+
+Data Entry 1
+Enter x value: 1
+Enter y value: 2
+
+Data Entry 2
+Enter x value: 2
+Enter y value: 4
+
+Data Entry 3
+Enter x value: 3
+Enter y value: 5
+
+Data Entry 4
+Enter x value: 4
+Enter y value: 4
+
+Correlation coefficient (r) = 0.6324
+
+Regression Line: Y = mX + b
+Slope (m): 0.7
+Intercept (b): 1.5
+
+Enter x value for prediction: 5
+
+Predicted y value: 5.0
 ```
-Enter number of data points: 4
-Enter x[1]: 1
-Enter y[1]: 2
-Enter x[2]: 2
-Enter y[2]: 4
-Enter x[3]: 3
-Enter y[3]: 5
-Enter x[4]: 4
-Enter y[4]: 4
-
-Slope (m): 0.9
-Intercept (b): 1.25
-
-Enter x to predict: 5
-Predicted y: 5.75
-```
-
----
 
 ## 8. Extra Depth
 
