@@ -2,7 +2,6 @@ import math
 
 def get_data():
     n = int(input("Enter number of data entries: "))
-
     X = []  # Stores x-values
     Y = []  # Stores y-values
     
@@ -10,10 +9,8 @@ def get_data():
         print(f"\nData Entry {i+1}")
         x = float(input("Enter x value: "))
         y = float(input("Enter y value: "))
-        
         X.append(x)
         Y.append(y)
-    
     return X, Y, n
 
 
@@ -22,7 +19,6 @@ def calculate_r(X, Y, n):
     
     sum_x = sum(X)
     sum_y = sum(Y)
-    
     mean_x = sum_x / n
     mean_y = sum_y / n
     
@@ -47,7 +43,6 @@ def calculate_r(X, Y, n):
     
     # Pearson correlation coefficient formula
     r = sum_xy_dev / (n * sig_x * sig_y)
-    
     return r, mean_x, mean_y, sig_x, sig_y
 
 
@@ -60,7 +55,6 @@ def calculate_regression(r, sig_x, sig_y, mean_x, mean_y):
     
     # Calculate intercept
     b = mean_y - (m * mean_x)
-    
     return m, b
 
 
@@ -72,7 +66,6 @@ def predict(m, b):
     
     # Apply regression equation
     y_pred = m * x_value + b
-    
     print("Predicted y value:", y_pred)
 
 
@@ -83,12 +76,10 @@ X, Y, n = get_data()
 
 # Calculate correlation coefficient and statistical measures
 r, mean_x, mean_y, sig_x, sig_y = calculate_r(X, Y, n)
-
 print("\nCorrelation coefficient (r) =", r)
 
 # Calculate regression line equation
 m, b = calculate_regression(r, sig_x, sig_y, mean_x, mean_y)
-
 print("\nRegression Line: Y = mX + b")
 print("Slope (m):", m)
 print("Intercept (b):", b)
