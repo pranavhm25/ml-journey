@@ -99,7 +99,8 @@ Linear Regression models the relationship between input features $X$ and a conti
 ### The Formula
 
 #### Simple Linear Regression (1 feature):
-$$\hat{y} = mx + b$$
+$$\hat{y} = mx + b$$ 
+
 Where:
 * $\hat{y}$ = Predicted target value.
 * $m$ = Slope of the line (weight / coefficient).
@@ -108,6 +109,7 @@ Where:
 
 #### Multiple Linear Regression ($n$ features):
 $$\hat{y} = \beta_0 + \beta_1x_1 + \beta_2x_2 + \dots + \beta_nx_n$$
+
 Where $\beta_0$ is the intercept and $\beta_1 \dots \beta_n$ are the feature weights.
 
 ---
@@ -118,6 +120,7 @@ Before calculating the parameters of the regression line, the strength and direc
 
 #### Mathematical Formula:
 $$r = \frac{\text{Cov}(X,Y)}{\sigma_x \times \sigma_y}$$
+
 Where:
 * $\text{Cov}(X,Y)$ = Covariance between $X$ and $Y$, indicating how they change together.
 * $\sigma_x$ = Standard deviation of $X$.
