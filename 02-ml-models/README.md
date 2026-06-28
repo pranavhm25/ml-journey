@@ -4,147 +4,262 @@
 
 ## 1. Classification
 
-**Classification** is a supervised learning task where the output is a **discrete class label** (not a continuous number).
+**Classification** is a supervised learning task where the target variable is categorical, meaning the goal is to map input features $X$ to a **discrete class label** $Y$. Rather than predicting a continuous value, classification algorithms output either a hard label or the conditional probability of an input instance belonging to each possible class.
 
-| Type | Output | Example |
-|------|--------|---------|
-| **Binary** | 2 classes | Spam / Not Spam |
-| **Multiclass** | 3+ classes | Cat / Dog / Bird |
-| **Multilabel** | Multiple labels per sample | Movie genres |
+
+
+### Core Taxonomies of Classification
+
+The objective and structural configuration of a classification model depend heavily on the nature of its target labels:
+
+| Classification Type | Target Cardinality ($Y$) | Probabilistic Constraint / Output Activation | Real-World Engineering Example |
+| :--- | :--- | :--- | :--- |
+| **Binary Classification** | Exactly **2** mutually exclusive classes <br>(e.g., $Y \in \{0, 1\}$) | Often uses a **Sigmoid** activation function to output a single probability $P(Y=1 \vert X)$. | • **Spam Filtering:** Spam vs. Ham.<br>• **Anomaly Detection:** Fraud vs. Legitimate.<br>• **Diagnostics:** Disease Present vs. Absent. |
+| **Multiclass Classification** | **3 or more** mutually exclusive classes <br>(e.g., $Y \in \{1, 2, \dots, K\}$) | Often uses a **Softmax** activation function to output a probability distribution across all $K$ classes where $\sum P(Y_k \vert X) = 1$. | • **Computer Vision:** Classifying an image explicitly as *either* a Cat, Dog, or Bird.<br>• **Optical Character Recognition (OCR):** Identifying handwritten digits ($0-9$). |
+| **Multilabel Classification** | **Multiple** non-mutually exclusive labels per instance | Often uses multiple independent **Sigmoid** activations. A single data point can simultaneously belong to zero, one, or all classes. | • **Document Tagging:** Assigning multiple genres (e.g., *Sci-Fi*, *Action*, and *Thrillar*) to a single movie.<br>• **Image Tagging:** Identifying all objects present in a photo (e.g., `['car', 'tree', 'pedestrian']`). |
+
+---
+
+### The Decision Boundary
+
+At its core, training a classification model is the process of learning a geometric **Decision Boundary** that partition the high-dimensional feature space into regions assigned to distinct classes. 
+
+* **Linear Classifiers (e.g., Logistic Regression, Linear SVM):** Construct flat hyperplanes as boundaries to separate classes.
+* **Non-Linear Classifiers (e.g., Random Forest, KNN, RBF-SVM):** Learn complex, curved, or jagged boundaries capable of enclosing intricately clustered datasets.
 
 ---
 
 ## 2. Logistic Regression
 
-Despite the name, this is a **classification** algorithm, not regression.
+Despite containing "Regression" in its name, Logistic Regression is a foundational **supervised classification** algorithm used to predict the probability of a discrete target variable.
 
-### How it works:
-1. Compute a linear combination: `z = β₀ + β₁x₁ + ... + βₙxₙ`
-2. Pass through a **sigmoid function** to get a probability:
-```
-σ(z) = 1 / (1 + e^(-z))        # output ∈ (0, 1)
-```
-3. Threshold at 0.5: if `σ(z) ≥ 0.5` → class 1, else → class 0
 
-### Loss function (Binary Cross-Entropy):
-```
-Loss = -[y*log(ŷ) + (1-y)*log(1-ŷ)]
-```
 
-### Key points:
-- Outputs probabilities, not just hard labels
-- Decision boundary is **linear** (hyperplane)
-- For multiclass: use **One-vs-Rest (OvR)** or **Softmax (Multinomial LR)**
+### The Core Mechanism
 
+Logistic Regression operates by taking a standard linear regression equation and compressing its infinite real-value output into a bounded probability space.
+
+1. **Linear Combination ($z$):** Compute the log-odds (logit) score by taking a linear combination of input features:
+   $$z = \beta_0 + \beta_1x_1 + \beta_2x_2 + \dots + \beta_nx_n$$
+
+2. **The Sigmoid (Logistic) Activation:** To map $z$ (which ranges from $-\infty$ to $+\infty$) into a valid probability space bounded strictly between $0$ and $1$, pass it through the **Sigmoid function**:
+   $$\sigma(z) = \frac{1}{1 + e^{-z}}$$
+   Where $\hat{y} = \sigma(z) = P(Y=1 \vert X)$.
+
+3. **Classification Thresholding:** Convert the continuous probability output $\hat{y}$ into a hard discrete class label by applying a decision threshold (default is $0.5$):
+   $$\text{Predicted Class} = \begin{cases} 1 & \text{if } \sigma(z) \ge 0.5 \quad (z \ge 0) \\ 0 & \text{if } \sigma(z) < 0.5 \quad (z < 0) \end{cases}$$
+
+---
+
+### Loss Function: Binary Cross-Entropy (Log Loss)
+
+Logistic Regression cannot use Ordinary Least Squares (OLS) because the Sigmoid function turns the resulting loss surface highly non-convex, introducing numerous local minima. Instead, it is trained using **Maximum Likelihood Estimation (MLE)**, which mathematically simplifies to minimizing **Binary Cross-Entropy Loss**:
+
+$$\mathcal{L}(y, \hat{y}) = -\left[ y \log(\hat{y}) + (1 - y) \log(1 - \hat{y}) \right]$$
+
+#### Why this mathematical structure works:
+* **When Actual $y = 1$:** The right half of the equation $(1-y)$ becomes $0$, leaving $\mathcal{L} = -\log(\hat{y})$. If the model correctly predicts $\hat{y} \to 1$, the loss approaches $0$. If it incorrectly predicts $\hat{y} \to 0$, the loss penalizes heavily by approaching $\infty$.
+* **When Actual $y = 0$:** The left half of the equation becomes $0$, leaving $\mathcal{L} = -\log(1 - \hat{y})$. If the model correctly predicts $\hat{y} \to 0$, the loss approaches $0$. If it incorrectly predicts $\hat{y} \to 1$, the loss approaches $\infty$.
+
+---
+
+### Architectural Characteristics
+
+* **Output Interpretability:** Unlike algorithms that only output hard predictions, Logistic Regression provides a well-calibrated conditional probability score, making it highly valuable in risk assessment (e.g., credit scoring).
+* **Linear Decision Boundary:** Even though the activation function is non-linear, the decision boundary is defined by the plane where $z = 0$. This means the geometric boundary separating classes remains a completely **linear hyperplane**.
+* **Multiclass Extensions:** To scale beyond binary classification, two primary strategies are used:
+  * **One-vs-Rest (OvR):** Trains $K$ independent binary classifiers (one per class) and selects the class with the highest probability.
+  * **Multinomial Logistic Regression (Softmax):** Replaces the Sigmoid function with a **Softmax function** to estimate a unified probability distribution across all $K$ classes simultaneously.
+  
 ---
 
 ## 3. Support Vector Machine (SVM)
 
-SVM finds the **optimal hyperplane** that maximally separates two classes.
+Support Vector Machine (SVM) is a powerful supervised learning algorithm used primarily for classification. The fundamental objective of an SVM is to find an **optimal separating hyperplane** in an $N$-dimensional space that maximizes the geometric distance (margin) between distinct data classes.
 
-### Key concepts:
 
-| Term | Meaning |
-|------|---------|
-| **Hyperplane** | Decision boundary (line in 2D, plane in 3D) |
-| **Support Vectors** | Data points closest to the hyperplane |
-| **Margin** | Distance between the hyperplane and nearest support vectors |
-| **Hard Margin** | Perfectly separable data — no misclassification allowed |
-| **Soft Margin (C param)** | Allows some misclassification for noisy data |
 
-### The objective:
-```
-Maximize margin = 2 / ||w||
-Subject to: yᵢ(w·xᵢ + b) ≥ 1
-```
+### Core Architectural Concepts
 
-### Kernel trick:
-When data is not linearly separable, map to higher dimensions using a **kernel function** without actually computing the high-dimensional coordinates.
+| Structural Component | Geometrical & Mathematical Meaning | Operational Role |
+| :--- | :--- | :--- |
+| **Hyperplane** | A subspace of dimension $N-1$ defined by the linear equation:<br>$$w^T x + b = 0$$ | Serves as the sharp decision boundary separating the target classes. |
+| **Support Vectors** | The data instances that lie exactly on the marginal boundaries satisfying:<br>$$\vert w^T x_i + b \vert = 1$$ | **Critical:** These are the only data points that determine the orientation and position of the hyperplane. Moving any other data points has zero effect on the model. |
+| **The Margin** | The perpendicular distance between the central separating hyperplane and the closest support vectors. | Measures the model's confidence. Maximizing this distance minimizes generalization error. |
 
-Common kernels:
-| Kernel | Formula | Use case |
-|--------|---------|----------|
-| **Linear** | `K(x,z) = x·z` | Linearly separable |
-| **Polynomial** | `K(x,z) = (x·z + c)^d` | Polynomial boundaries |
-| **RBF (Gaussian)** | `K(x,z) = exp(-γ||x-z||²)` | General non-linear |
-| **Sigmoid** | `K(x,z) = tanh(αx·z + c)` | Neural-net-like |
+---
+
+### Mathematical Optimization Objective
+
+SVM converts classification into a constrained quadratic programming optimization problem.
+
+#### 1. Hard Margin SVM (Strict Separation)
+Used when the data is perfectly linearly separable. It allows absolutely zero misclassifications inside the training set:
+$$\min_{w, b} \frac{1}{2} \|w\|^2 \quad \text{subject to} \quad y_i(w^T x_i + b) \ge 1 \quad \forall i$$
+* *Note:* Maximizing the geometric margin $\frac{2}{\|w\|}$ is mathematically equivalent to minimizing $\frac{1}{2}\|w\|^2$.
+
+#### 2. Soft Margin SVM (Slack Variables & Parameter $C$)
+Real-world data is rarely perfectly separable. Soft Margin SVM introduces slack variables ($\xi_i \ge 0$) to allow controlled margin violations or misclassifications:
+$$\min_{w, b, \xi} \frac{1}{2} \|w\|^2 + C \sum_{i=1}^{n} \xi_i \quad \text{subject to} \quad y_i(w^T x_i + b) \ge 1 - \xi_i$$
+
+* **The Regularization Parameter $C$:**
+  * **Large $C$:** Heavy penalty for misclassification. The model focuses on correctly classifying every single point, leading to a narrower margin (**Risk of Overfitting / High Variance**).
+  * **Small $C$:** High tolerance for misclassification. The model prioritizes a wider, safer margin over absolute accuracy on the training set (**Risk of Underfitting / High Bias**).
+
+---
+
+### The Kernel Trick
+
+When a dataset cannot be separated by a straight line or flat hyperplane in its current configuration, the **Kernel Trick** is deployed. Instead of manually transforming data points into a computationally expensive high-dimensional feature space, a **Kernel Function** computes the inner product (similarity score) of vectors *as if* they were already transformed.
+
+
+
+#### Standard Mathematical Kernels
+
+| Kernel Type | Mathematical Formula | Hyperparameters & Intuition |
+| :--- | :--- | :--- |
+| **Linear** | $$K(x, z) = x^T z$$ | No hyperparameter tuning. Best for text classification or high-dimensional sparse datasets. |
+| **Polynomial** | $$K(x, z) = (x^T z + c)^d$$ | • $d$: Degree of the polynomial.<br>• $c$: Free parameter trading off higher vs lower order terms. |
+| **RBF (Radial Basis Function / Gaussian)** | $$K(x, z) = \exp\left(-\gamma \|x - z\|^2\right)$$ | Maps data into an infinite-dimensional space. **The parameter $\gamma$ (gamma)** controls the radius of influence of individual support vectors:<br>• **High $\gamma$:** Tight, localized decision boundaries around individual points (**Overfitting**).<br>• **Low $\gamma$:** Smooth, sweeping decision boundaries (**Underfitting**). |
+| **Sigmoid** | $$K(x, z) = \tanh\left(\alpha x^T z + c\right)$$ | Originating from neural network architectures, behaves similarly to a multi-layer perceptron. |
 
 ---
 
 ## 4. Decision Trees
 
-A tree-structured model that splits data based on feature thresholds.
+A Decision Tree is a non-parametric supervised learning algorithm that decomposes a dataset into smaller, increasingly homogeneous subsets using a hierarchical, tree-like structure of binary decisions. 
 
-### How it works:
+
+### Core Architectural Structure & How it Works
+* **Root Node:** Represents the top-level choice that initiates the first data split based on the most informative feature.
+* **Internal Nodes:** Represent subsequent attribute tests or intermediate decision points.
+* **Leaf Nodes:** Terminal nodes that contain no further splits and output the final hard discrete class prediction (classification) or sample mean value (regression).
+
+```text
+                [ Root Node: Feature A ≤ 2.5? ]
+                    /                     \
+             (Yes) /                       \ (No)
+                  /                         \
+    [ Internal Node: Feature B ≤ 1.0? ]   [ Leaf Node: Class 2 ]
+          /                 \
+   (Yes) /                   \ (No)
+        /                     \
+[ Leaf Node: Class 0 ]    [ Leaf Node: Class 1 ]
 ```
-Root
-├── Feature A ≤ 2.5?
-│   ├── YES → Feature B ≤ 1.0?
-│   │           ├── YES → Class 0
-│   │           └── NO  → Class 1
-│   └── NO  → Class 2
-```
 
-### Splitting criteria:
+---
 
-| Criterion | Formula | Used for |
-|-----------|---------|----------|
-| **Gini Impurity** | `1 - Σpᵢ²` | Classification (CART) |
-| **Entropy / Info Gain** | `-Σpᵢ log₂(pᵢ)` | Classification (ID3, C4.5) |
-| **MSE** | `Σ(yᵢ - ȳ)²` | Regression |
+### Splitting Criteria
 
-### Hyperparameters:
-- `max_depth` — limits tree depth (prevents overfitting)
-- `min_samples_split` — minimum samples needed to split a node
-- `min_samples_leaf` — minimum samples in a leaf node
+Decision Trees construct splits by selecting the specific feature and threshold value that maximizes the homogeneity (purity) of the resulting child nodes.
 
-### Pros & Cons:
-| Pros | Cons |
-|------|------|
-| Interpretable | Prone to overfitting |
-| Handles mixed data types | Unstable (small changes → different tree) |
-| No scaling needed | Biased toward features with many levels |
+| Criterion | Mathematical Formula | Algorithmic Context | Operational Intuition |
+| :--- | :--- | :--- | :--- |
+| **Gini Impurity** | $$I_G(p) = 1 - \sum_{i=1}^{K} p_i^2$$ | Classification <br>(Used natively by **CART**) | Measures the probability of a randomly chosen element being incorrectly labeled if it were randomly classified according to the distribution of labels in the subset. Ranges from $0$ (pure) to $0.5$ (max impurity for binary). |
+| **Entropy** | $$H(X) = -\sum_{i=1}^{K} p_i \log_2(p_i)$$ | Classification <br>(Used by **ID3**, **C4.5**) | Derived from Shannon Information Theory; measures the level of disorder or uncertainty within a node. Ranges from $0$ (pure) to $1.0$ (max uncertainty). Used to compute **Information Gain**: <br>$$\text{IG} = H(\text{Parent}) - \sum \frac{N_{\text{Child}}}{N_{\text{Parent}}} H(\text{Child})$$ |
+| **Mean Squared Error (MSE)** | $$\text{MSE} = \frac{1}{N} \sum_{i=1}^{N} (y_i - \bar{y})^2$$ | Regression <br>(Continuous targets) | Minimizes the variance of the target values within each resulting partition. Each leaf node predicts the mathematical mean ($\bar{y}$) of the continuous samples trapped within that leaf. |
+
+*(Where $p_i$ is the empirical probability of an instance belonging to class $i$ out of $K$ total classes).*
+
+---
+
+### Regularization Hyperparameters
+
+By default, an unconstrained decision tree will grow until every single leaf node is entirely pure, which results in extreme **Overfitting (High Variance)**. To enforce generalization, regularization boundaries must be locked in:
+
+* `max_depth`: Restricts the maximum vertical levels the tree can split down. Lowering this value curtails overfitting by stopping the tree from finding hyper-specific patterns.
+* `min_samples_split`: The minimum number of data samples that must reside inside an internal node for it to be legally allowed to split. If a node holds fewer instances than this value, it is forced to become a terminal leaf.
+* `min_samples_leaf`: The minimum number of data samples that a terminal leaf node is required to contain. This smooths predictions out by preventing leaves from isolating individual noise or outlier rows.
+
+---
+
+### Tradeoffs & Operational Dynamics
+
+| Advantages (Pros) | Architectural Limitations (Cons) |
+| :--- | :--- |
+| **High Interpretability:** Follows a clear, white-box Boolean decision path that humans can visually audit easily. | **Extreme Instability:** Exhibits high variance. Small changes or minor noise in the training data can alter the root split, yielding an entirely different tree structure. |
+| **Zero Data Preprocessing:** Requires no feature scaling (Normalization/Standardization) or centering because thresholds are independent across axes. | **Prone to Overfitting:** Easily creates highly complex, jagged non-linear decision boundaries that fail to generalize well without rigid hyperparameters. |
+| **Heterogeneous Handling:** Natively accommodates both numerical features and raw categorical elements without multi-dimensional expansion. | **High-Cardinality Bias:** Splitting criteria are mathematically biased toward picking features containing numerous unique categories or splitting intervals, even if they aren't truly informative. |
 
 ---
 
 ## 5. Bias
 
-**Bias** is the error from wrong assumptions in the learning algorithm.
+**Bias** measures how far off a model's average predictions are from the true underlying ground-truth values. It represents the systematic error introduced by making oversimplified assumptions about the nature of the data.
 
-- High bias = model is **too simple**, underfits the data
-- Example: fitting a straight line to clearly curved data
+
+
+### Mathematical Intuition
+
+Statistically, bias is the difference between the expected value (average) of our model's predictions and the true value we are trying to predict:
+
+$$\text{Bias}[\hat{f}(x)] = \mathbb{E}[\hat{f}(x)] - f(x)$$
+
+Where:
+* $f(x)$ = The true, underlying target function (ground truth).
+* $\hat{f}(x)$ = The model's estimated function trained on a specific dataset.
+* $\mathbb{E}[\hat{f}(x)]$ = The average prediction of the model if it were trained repeatedly on different variations of the data.
+
+---
+
+### Structural Characteristics
+
+* **High Bias (Underfitting):** Occurs when an algorithm is too rigid or lacks the parameters needed to capture the true distribution. It completely misses the underlying trend.
+  * **The Visual:** Attempting to fit a straight linear regression line ($y = mx + b$) to a dataset that follows a clear, non-linear parabolic curve.
+  * **The Metric Signal:** High training error **AND** high validation/testing error. The model fails right out of the gate.
+* **Low Bias:** Means the model makes very few restrictive assumptions about the data shape, allowing it to adapt dynamically to complex, non-linear patterns (e.g., K-Nearest Neighbors with a low $k$, or Deep Decision Trees).
 
 ```
-High Bias → Underfitting → High training error AND high test error
+High Bias ──> Underfitting ──> High Training Error + High Test Error
 ```
+
+---
+
+#### The Mathematical Decomposition of Error
+Bias cannot be analyzed in a vacuum because it is explicitly tied to a model's total generalization risk. The total expected error at a given point $x$ is broken down as:
+
+$$\text{Total Expected Error} = \text{Bias}^2 + \text{Variance} + \sigma^2$$
+
+*(Where $\sigma^2$ is the irreducible error caused by inherent noise in the data collection process).*
 
 ---
 
 ## 6. Bias-Variance Tradeoff
 
-The ultimate goal of training a model is to minimize **Total Error**, which is driven by two competing forces as model complexity changes:
+The ultimate goal of training a machine learning model is to achieve strong generalization—minimizing the **Total Expected Error** on completely unseen data. This is driven by managing two fundamentally competing forces that shift as model complexity scales.
 
 
-* **Bias² (Decreases with Complexity):** Error introduced by underestimating the data's complexity. Simple models have high bias because they cannot capture non-linear relationships, leading to **underfitting**.
 
-* **Variance (Increases with Complexity):** Error introduced by overestimating the significance of random noise. Highly flexible models have high variance because they radically alter their predictions based on minor changes in training data, leading to **overfitting**.
+### 6.1 The Core Components
 
-* **The Total Error Curve:** Forms a **U-shape**. Total error is high when complexity is too low (dominated by bias) and high when complexity is too high (dominated by variance). The ideal model architecture sits at the lowest point of this curve.
+* **Bias² (Decreases with Complexity):** The error introduced by underestimating the true underlying functions of the data. Simple models make sweeping, rigid assumptions. They exhibit high bias because they cannot capture non-linear relationships, leading directly to **underfitting**.
+* **Variance (Increases with Complexity):** The error introduced by overestimating the significance of random fluctuations in the training dataset. Highly flexible models adapt aggressively to the specific data points they see. They exhibit high variance because they radically alter their parameter weights based on minor variations in training samples, leading directly to **overfitting**.
+* **The Total Error Curve:** Forms a distinctive **U-shape**. Total error is high when complexity is too low (dominated by squared bias) and high when complexity is too high (dominated by variance). The ideal model architecture sits at the inflection point at the absolute lowest valley of this curve.
 
-| | Low Complexity Model | High Complexity Model |
-|--|---------------------|-----------------------|
-| **Bias** | High (underfits) | Low |
-| **Variance** | Low | High (overfits) |
-| **Training Error** | High | Very low |
-| **Test Error** | High | High |
+---
 
-### The sweet spot:
-```
-Total Error = Bias² + Variance + Irreducible Noise
-```
-You want the model complexity where `Bias² + Variance` is minimized.
+### 6.2 Structural Complexity Matrix
 
-### Visual intuition:
+| Dimension / Metric | Low Complexity Model (e.g., Linear) | High Complexity Model (e.g., Deep Tree) |
+| :--- | :--- | :--- |
+| **Statistical State** | **High Bias**, Low Variance | Low Bias, **High Variance** |
+| **Fitting Paradigm** | Underfits the data | Overfits the data |
+| **Training Error** | High | Extremely Low (approaching zero) |
+| **Test Error** | High | High (wide generalization gap) |
+| **Sensitivity to Noise** | Immune to minor data fluctuations | Extremely sensitive to noise and outliers |
+
+---
+
+### 6.3 The Mathematical Sweet Spot
+
+The total expected prediction error at any given validation point $x$ can be decomposed into three mathematically distinct terms:
+
+$$\text{Total Error} = \text{Bias}^2 + \text{Variance} + \sigma^2$$
+
+Where $\sigma^2$ is the **Irreducible Noise** (inherent randomness in the data collection process itself, such as measurement limits, which no algorithm can ever mathematically eliminate). The objective of hyperparameter tuning is to find the exact model capacity where the sum of $\text{Bias}^2 + \text{Variance}$ hits its global minimum.
+
+#### 6.3.1 Clean ASCII Visual Intuition
+
 ```
 Error
   |          \      /
@@ -153,7 +268,8 @@ Error
   |             \/
   |              \  /← Variance
   |_______________\/______
-                  Model Complexity
+            Model Complexity
+              (Sweet Spot)
 ```
 
 ---
