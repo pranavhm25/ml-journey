@@ -99,7 +99,8 @@ Linear Regression models the relationship between input features $X$ and a conti
 ### The Formula
 
 #### Simple Linear Regression (1 feature):
-$$\hat{y} = mx + b$$ 
+
+$$\hat{y} = mx + b$$
 
 Where:
 * $\hat{y}$ = Predicted target value.
@@ -108,23 +109,30 @@ Where:
 * $b$ = Intercept (bias).
 
 #### Multiple Linear Regression ($n$ features):
+
 $$\hat{y} = \beta_0 + \beta_1x_1 + \beta_2x_2 + \dots + \beta_nx_n$$
 
 Where $\beta_0$ is the intercept and $\beta_1 \dots \beta_n$ are the feature weights.
 
 ---
 
-### Correlation Coefficient ($r$)
+### Two Mathematical Approaches for Parameter Estimation
 
-Before calculating the parameters of the regression line, the strength and direction of the linear relationship between the independent variable $X$ and dependent variable $Y$ is measured using the **Pearson Correlation Coefficient ($r$)**. 
+To find the optimal slope ($m$) and intercept ($b$) without iterative optimization (like Gradient Descent), we can use two different closed-form analytical methods. Both yield the exact same regression line but utilize different descriptive stats.
 
-#### Mathematical Formula:
-$$r = \frac{\text{Cov}(X,Y)}{\sigma_x \times \sigma_y}$$
+#### Approach A: The Correlation Coefficient Method
+This approach uses the data's directional relationship and standard spreads to scale the regression line.
 
-Where:
-* $\text{Cov}(X,Y)$ = Covariance between $X$ and $Y$, indicating how they change together.
-* $\sigma_x$ = Standard deviation of $X$.
-* $\sigma_y$ = Standard deviation of $Y$.
+1. **Pearson Correlation Coefficient ($r$):** Measures the linear strength and direction between $X$ and $Y$:
+   $$r = \frac{\text{Cov}(X,Y)}{\sigma_x \times \sigma_y}$$
+   *(Where $\text{Cov}(X,Y)$ is covariance between $X$ and $Y$, $\sigma_x$ is the standard deviation of $X$, and $\sigma_y$ is the standard deviation of $Y$).*
+
+2. **Slope ($m$):** Scaled by the ratio of the variability in $Y$ to $X$:
+   $$m = r \times \left(\frac{\sigma_y}{\sigma_x}\right)$$
+
+3. **Intercept ($b$):** Anchors the line through the center of mass $(\bar{X}, \bar{Y})$:
+   $$b = \bar{Y} - m\bar{X}$$
+   *(Where $\bar{Y}$ is the sample mean of $Y$, and $\bar{X}$ is the sample mean of $X$).*
 
 #### Interpretation Matrix for $r$:
 | Value of $r$ | Statistical Interpretation | Visual Trend |
@@ -135,24 +143,21 @@ Where:
 
 ---
 
-### Regression Line Parameters
+#### Approach B: Ordinary Least Squares (OLS) Algebraic Method
+This approach uses calculus to directly minimize the **Mean Squared Error (MSE)** loss function by setting its partial derivatives to zero. This bypasses the need to calculate standard deviations or correlation coefficients explicitly.
 
-The parameters for simple linear regression can be computed directly using the correlation coefficient and the data's descriptive statistics.
+1. $\text{MSE} = \frac{1}{n} \sum (y_i - \hat{y}_i)^2$
+2. **Slope ($m$):** Computed using raw coordinate sum accumulators:
+   $$m = \frac{n \sum_{i=1}^{n}(x_i y_i) - (\sum_{i=1}^{n} x_i)(\sum_{i=1}^{n} y_i)}{n \sum_{i=1}^{n}(x_i^2) - (\sum_{i=1}^{n} x_i)^2}$$
 
-#### 1. Slope ($m$)
-The slope scale factor is determined by the ratio of the variability in $Y$ to the variability in $X$, scaled by their correlation coefficient $r$:
-$$m = r \times \left(\frac{\sigma_y}{\sigma_x}\right)$$
-
-#### 2. Intercept ($b$)
-The line is forced to pass directly through the center of mass of the data—the point $(\bar{X}, \bar{Y})$. The intercept anchors this line along the Y-axis:
-$$b = \bar{Y} - m\bar{X}$$
-*(Where $\bar{Y}$ is the sample mean of $Y$, and $\bar{X}$ is the sample mean of $X$).*
+3. **Intercept ($b$):** Derived algebraically from the accumulated sums:
+   $$b = \frac{\sum_{i=1}^{n} y_i - m \sum_{i=1}^{n} x_i}{n}$$
 
 ---
 
 ### Inference & Prediction
 
-Once the structural parameters $m$ and $b$ are locked in, predictions can be evaluated for any arbitrary unseen input value ($X_{\text{new}}$):
+Once the structural parameters $m$ and $b$ are locked in (regardless of which analytical approach was used), predictions can be evaluated for any arbitrary unseen input value ($X_{\text{new}}$):
 
 $$Y_{\text{pred}} = m \times X_{\text{new}} + b$$
 
@@ -176,11 +181,15 @@ The calculated value $Y_{\text{pred}}$ represents the conditional expected value
 
 ---
 
-## 7. Linear Regression Using Correlation Coefficient
+## 7. Linear Regression Script Implementations (libary-free)
+
+Both scripts accept dynamic data inputs and handle calculations purely through standard loops and primitive variables without external dependencies.
+
+### 7.1 Method 1: Using the Correlation Coefficient Approach
 
 See: [`linear_regression.py`](./linear_regression.py)
 
-### What it does:
+#### What it does:
 - Accepts `n` rows of input dynamically (user types each row)
 - Stores X and Y values in separate lists.
 - Calculates:
@@ -192,7 +201,7 @@ See: [`linear_regression.py`](./linear_regression.py)
 - Predicts Y for a user-provided X value.
 - Uses only loops and variables — no libraries
 
-### Formula Flow Used in the Program
+#### Formula Flow Used in the Program
 
 ```text
 Input Data
@@ -212,12 +221,12 @@ Generate Regression Equation
 Predict New Value
 ```
 
-### How to run:
+#### How to run:
 ```bash
 python linear_regression.py
 ```
 
-### Sample Run
+#### Sample Run
 
 ```text
 Enter number of data entries: 4
@@ -238,16 +247,90 @@ Data Entry 4
 Enter x value: 4
 Enter y value: 4
 
-Correlation coefficient (r) = 0.6324
+Correlation coefficient (r) = 0.718
 
 Regression Line: Y = mX + b
 Slope (m): 0.7
-Intercept (b): 1.5
+Intercept (b): 2.0
 
 Enter x value for prediction: 5
 
-Predicted y value: 5.0
+Predicted y value: 5.5
 ```
+
+### 7.2 Method 2: Using the OLS Algebraic Approach
+
+See: [`linear_regression_ols.py`](./linear_regression_ols.py)
+
+#### What it does:
+
+- Accepts `n` rows of input dynamically (user types each row)
+- Computes slope `m` and intercept `b` using the OLS formulas above
+- Takes a new input and predicts the output
+- Uses only loops and variables — no libraries
+
+#### Formula Flow Used in the Program
+
+```text
+Input Data
+     ↓
+Accumulate Sums (∑x, ∑y, ∑xy, ∑x²)
+     ↓
+Compute Slope (m)
+     ↓              (OLS Equations)
+Intercept (b)
+     ↓
+Generate Regression Equations
+     ↓
+Predict New Values
+```
+
+#### How to run:
+```bash
+python linear_regression_ols.py
+```
+
+#### Sample Run
+
+```text
+Linear Regression using Ordinary Least Squares (OLS)
+
+Enter number of data points: 4
+
+Data Point 1
+Enter x value: 1
+Enter y value: 2
+
+Data Entry 2
+Enter x value: 2
+Enter y value: 4
+
+Data Entry 3
+Enter x value: 3
+Enter y value: 5
+
+Data Entry 4
+Enter x value: 4
+Enter y value: 4
+
+Model Parameters:
+Slope (m): 0.7
+Intercept (b): 2.0
+Equation: ŷ = 0.7x + 2.0
+
+Training Metrics:
+MSE = 0.575
+RMSE = 0.758
+R² = 0.516
+
+Prediction Mode (type 'q' to quit)
+Enter x to predict: 5
+Predicted y = 5.5
+
+Done.
+```
+
+---
 
 ## 8. Extra Depth
 
