@@ -52,25 +52,40 @@ $$\min_{w, b} \frac{1}{2} \|w\|^2 + C \sum_{i=1}^{n} \max(0, \vert y_i - (w x_i 
 * **$\epsilon$ (Epsilon):** Dictates the width of the tube. A larger tube means fewer points violate the margin, leading to a sparser selection of support vectors.
 * **$C$:** Controls the penalty weight assigned to points that fall outside the epsilon boundary.
 
+---
+
 ## 4. What is a Decision Boundary?
 
-A decision boundary is the line (or surface) that separates different classes in the feature space. Points on one side are predicted as one class; points on the other side as another.
+A geometric **Decision Boundary** is a surface or partition in an $N$-dimensional feature space that splits different target classes. The trained machine learning model utilizes this boundary as its classification rule: any input instance falling on one side is assigned to a specific discrete class, while an instance falling on the opposite side is assigned to another.
 
-```
+#### Visual Intuition (2D Feature Space)
+
+```text
 Petal Width
-   |      . . .|x x x
-   |   . . .   |x x x
-   |  . . .   /  x x
-   |          /        ← Decision Boundary
-   |_________/________________ Petal Length
+   │      . . .│x x x
+   │   . . .   │x x x
+   │  . . .   /  x x
+   │         /        ← Decision Boundary (Hyperplane)
+   │________/________________ Petal Length
 ```
 
-- **Linear models** (Logistic Regression, Linear SVM) → straight line boundary
-- **Decision Tree** → stepped/rectangular boundary (splits are always axis-aligned)
+### Geometric Properties Across Algorithms
 
-To visualize, we use only 2 features at a time — you can't plot 4D space.
+The mathematical nature of the learning algorithm dictates the structural shape and flexibility of the resulting boundary:
 
-In `iris_log_linsvm_dec.py`, training points are shown as **circles** and test points as **X markers** (in red outline) so you can visually see where the model is being evaluated vs where it learned from.
+* Linear Classifiers (Logistic Regression, Linear SVM): Compute flat boundaries. In a 2D plot, this is a completely straight line; in 3D, it is a flat plane; and in $N$-dimensions, it is an $(N-1)$-dimensional hyperplane defined by the linear combination $w^T x + b = 0$.
+
+* Decision Tree Classifiers: Generate highly characteristic stepped or rectangular (orthogonal) boundaries. Because decision trees evaluate individual features one at a time via primitive threshold inequalities (e.g., $x_j \le \text{threshold}$), every single partition line is structurally forced to be axis-aligned (parallel to the feature axes).
+
+### Visualization and Code Metrics
+
+* Dimensional Constraints: To properly visualize these boundaries, data inputs are explicitly restricted to two features at a time (e.g., Petal Length vs. Petal Width). It is geometrically impossible to render a multi-dimensional hyperplane spanning a 4D feature space directly on a 2D screen.
+
+* Evaluation Diagnostics: In the consolidated evaluation script iris_log_linsvm_dec.py, data partitions are visually explicitly decoupled on the generated scatter plots:
+
+  * Circles ($\bullet$): Represent the Training Set points—the coordinates the model actively used to adjust parameters and orient the decision boundary.
+
+  * X Markers ($\times$ with red outlines): Represent the completely held-out Test Set points. This allows you to immediately audit whether the model generalizes well or if the decision boundary has warped around noise near the evaluation zones.
 
 ---
 
