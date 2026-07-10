@@ -19,6 +19,7 @@ This module covers foundational supervised machine learning models implemented v
 ## 2. Dataset
 
 ### 🌸 The Iris Flower Dataset
+
 * **API Ingestion:** `from sklearn import datasets`<br>`iris = datasets.load_iris()`
 * **Dataset Scale:** $150$ total samples ($50$ instances distributed evenly per class).
 * **Feature Subsampling:** Sliced to extract **Petal Length** and **Petal Width** exclusively (columns index $2$ and $3$). 
@@ -27,6 +28,7 @@ This module covers foundational supervised machine learning models implemented v
 * **Task Objective:** Non-linearly separable multiclass classification.
 
 ### 🏠 The California Housing Dataset
+
 * **API Ingestion:** `from sklearn.datasets import fetch_california_housing`
 * **Feature Subsampling:** Isolated down to **Median Income** as the single independent predictor variable.
   * *Engineering Rationale:* Restricting the independent input matrix to a single dimension ($X \in \mathbb{R}^1$) keeps the feature space strictly 2D ($X$ vs $Y$). This allows clear geometric plotting of the regression lines against actual data points.
@@ -69,30 +71,26 @@ Petal Width
    │________/________________ Petal Length
 ```
 
-### Geometric Properties Across Algorithms
+### 4.1 Geometric Properties Across Algorithms
 
 The mathematical nature of the learning algorithm dictates the structural shape and flexibility of the resulting boundary:
 
 * Linear Classifiers (Logistic Regression, Linear SVM): Compute flat boundaries. In a 2D plot, this is a completely straight line; in 3D, it is a flat plane; and in $N$-dimensions, it is an $(N-1)$-dimensional hyperplane defined by the linear combination $w^T x + b = 0$.
-
 * Decision Tree Classifiers: Generate highly characteristic stepped or rectangular (orthogonal) boundaries. Because decision trees evaluate individual features one at a time via primitive threshold inequalities (e.g., $x_j \le \text{threshold}$), every single partition line is structurally forced to be axis-aligned (parallel to the feature axes).
 
-### Visualization and Code Metrics
+### 4.2 Visualization and Code Metrics
 
 * Dimensional Constraints: To properly visualize these boundaries, data inputs are explicitly restricted to two features at a time (e.g., Petal Length vs. Petal Width). It is geometrically impossible to render a multi-dimensional hyperplane spanning a 4D feature space directly on a 2D screen.
-
-* Evaluation Diagnostics: In the consolidated evaluation script iris_log_linsvm_dec.py, data partitions are visually explicitly decoupled on the generated scatter plots:
-
-  * Circles ($\bullet$): Represent the Training Set points—the coordinates the model actively used to adjust parameters and orient the decision boundary.
-
+* Evaluation Diagnostics: In the consolidated evaluation script `iris_log_linsvm_dec.py`, data partitions are visually explicitly decoupled on the generated scatter plots:
+  * Circles ($\bullet$): Represent the Training Set points—the coordinates the model actively used to adjust parameters and orient the decision boundgit pary.
   * X Markers ($\times$ with red outlines): Represent the completely held-out Test Set points. This allows you to immediately audit whether the model generalizes well or if the decision boundary has warped around noise near the evaluation zones.
 
 ---
 
 ## 5. Files
 
-| File | Models inside | Output plot |
-|------|--------------|-------------|
+| File | Models Inside | Output Plot |
+|------|---------------|-------------|
 | `iris_log_linsvm_dec.py` | Logistic Regression, SVM (Linear), Decision Tree | `plots/iris_all_models.png` |
 | `housing_linsvr_linreg.py` | Linear Regression, Linear SVR | `plots/housing_lr_svr.png` |
 
@@ -111,47 +109,66 @@ python iris_log_linsvm_dec.py
 python housing_linsvr_linreg.py
 ```
 
-Plots are saved to the `plots/` folder automatically. You do **not** need a display or GUI — `matplotlib.use('Agg')` handles this.
+> Plots are saved to the `plots/` folder automatically. You do **not** need a display or GUI — `matplotlib.use('Agg')` handles this.
 
 ---
 
-## 6. Training Process
+## 7. The Training Process
 
-### `iris_log_linsvm_dec.py` — step by step:
-1. Load Iris, select petal features (columns 2 & 3)
-2. Split → 80% Train | 10% Val | 10% Test (stratified — equal class proportions in each split)
-3. Fit `StandardScaler` on train only → transform val and test
-4. Loop over 3 models: fit → evaluate → plot decision boundary
-5. Print full metrics per model, save combined plot
+The execution logic within the scikit-learn scripts follows strict machine learning best practices to ensure unbiased evaluation and prevent data leakage.
 
-### `housing_linsvr_linreg.py` — step by step:
-1. Load California Housing, select Median Income column only
-2. Split → 80% Train | 10% Val | 10% Test
-3. Fit `StandardScaler` on X (train only) and separately on y (train only)
-   - y is scaled for SVR — SVM is sensitive to output scale
-   - Predictions are inverse-transformed back to original price scale before computing metrics
-4. Train both Linear Regression and Linear SVR
-5. Evaluate all three splits for both models
-6. Plot both fits side by side — SVR includes the ε-tube (the margin zone where no penalty is applied)
+### 7.1 Pipeline Breakdown: `iris_log_linsvm_dec.py`
 
----
+This script executes a multiclass classification pipeline across three distinct models to contrast their geometric limits:
 
-## 7. Pre-processing Notes
+1. **Ingestion & Feature Slicing:** Loads the Iris dataset and subsets the design matrix to features $2$ and $3$ (Petal Length and Petal Width).
+2. **Double-Fold Stratified Split:** Splits the data chronologically into an $80/10/10$ ratio:
+   * **Step A:** Split into $80\%$ Training and $20\%$ Temporary validation/testing data.
+   * **Step B:** Split the temporary pool exactly in half to yield $10\%$ Validation and $10\%$ Testing sets.
+   * *Mechanism:* The splitting utilizes `stratify=y` to preserve strict class proportions across all three subsets.
+3. **Isolated Preprocessing:** Fits a standard $Z$-score normalizer (`StandardScaler`) on the Training partition only. The fitted transformation parameters ($\mu_{\text{train}}, \sigma_{\text{train}}$) are then downstream applied to the Validation and Test sets to prevent data leakage.
+4. **Execution Loop:** Iterates sequentially through Logistic Regression, Linear SVM, and the Decision Tree Classifier:
+   * Invokes `.fit()` on the training split.
+   * Computes multi-class evaluation metrics across all partitions.
+   * Generates a structural meshgrid to map and overlay the decision boundaries.
+5. **Reporting:** Prints a comprehensive classification report (Precision, Recall, F1-Score) and exports a unified sub-plot graphic.
 
-### Why scale y in `housing_linsvr_linreg.py`?
-SVR optimizes a margin in the output space. If house prices range from 0.5 to 5.0 (in $100k units), the epsilon (`ε=0.1`) and C parameter are interpreted relative to that scale. Scaling y to zero mean and unit variance makes these hyperparameters behave predictably.
+### 7.2 Pipeline Breakdown: `housing_linsvr_linreg.py`
 
-Linear Regression doesn't need y scaled, but it's done here for a fair comparison — both models see the same scaled inputs and outputs.
+This script executes a continuous estimation workflow contrasting a residual-squared baseline with a marginal-insensitive loss model:
 
-### Why `stratify=y` in `iris_log_linsvm_dec.py`?
-Without stratify, a random split might put all of one class into the test set. `stratify=y` guarantees all three Iris classes appear proportionally in every split.
-
-### Why petal features and not sepal?
-Sepal features have significant class overlap — the boundaries are messy and hard to interpret visually. Petal features separate the three classes much more cleanly, making the differences between model boundaries (straight line vs steps) clearly visible.
+1. **Ingestion & Dimensional Restriction:** Ingests the California Housing data, trapping the design matrix to the Median Income column.
+2. **Partitioning:** Segmented into an $80\%$ Train, $10\%$ Validation, and $10\%$ Test configuration using an identical double-split routine.
+3. **Dual-Target Preprocessing:** Fits a `StandardScaler` to the feature vector $X$ (training only). Crucially, a separate instance of `StandardScaler` is fitted to the **target vector $y$** (training only). 
+4. **Parameter Inversion:** Predictions generated in the scaled vector space ($\hat{y}_{\text{scaled}}$) are passed back through the inverse scale transform (`scaler_y.inverse_transform()`) to restore native dollar values before any evaluation metrics are computed.
+5. **Model Fitting:** Simultaneously trains Ordinary Least Squares (OLS) Linear Regression and Linear Support Vector Regression (SVR).
+6. **Geometric Visualization:** Generates a side-by-side scatter plot overlaying the OLS regression line against the SVR regression line. The SVR plot explicitly highlights the **$\epsilon$-insensitive tube** (a shaded margin band representing the dead-zone boundary where prediction errors are assigned a loss penalty of exactly $0$).
 
 ---
 
-## 8. Evaluation Metrics
+## 8. Preprocessing Notes
+
+### 8.1 The Rationale Behind Scaling Target Vector $y$ in SVR
+Unlike Ordinary Least Squares (OLS) regression, which adapts scale-invariantly due to its unconstrained closed-form derivative equations, Support Vector Regression (SVR) is highly sensitive to the magnitude of the target variable $y$. 
+
+SVR measures error relative to its optimization hyperparameters: the insensitive tube width $\epsilon$ and the constraint penalty $C$. If house values are expressed in raw native digits (e.g., $\$350,000$), a hardcoded tube width like $\epsilon = 0.1$ becomes infinitesimally narrow, rendering the margin mechanic useless. Scaling the target vector $y$ to zero mean and unit variance ensures that $\epsilon$ and $C$ act predictably as relative proportions of standard deviations, regardless of the target's underlying unit scale. 
+
+* *Note:* OLS Linear Regression does not mathematically require a scaled target vector $y$, but it is subjected to the same pipeline here to enforce a completely fair benchmark comparison.
+
+### 8.2 The Necessity of Stratified Sampling (`stratify=y`)
+In discrete classification tasks, relying on basic random distribution splits introduces high statistical risk, particularly on small or skewed datasets. A completely random assignment could result in an irregular distribution where one target class is overrepresented in the training pool and entirely absent from the testing subset. 
+
+By passing the label array to the splitting routine (`stratify=y`), the algorithm calculates the base class distribution ratio of the global dataset (e.g., a perfect $1:1:1$ split for Iris) and forces every resulting partition to duplicate that exact relative proportion. This ensures that the model is evaluated on data that accurately reflects the training environment.
+
+### 8.3 Feature Choice: Petals vs. Sepals
+The morphological dimensions of an iris flower differ significantly in their descriptive power:
+
+* **Sepal Subspace:** High geometric overlap. The data boundaries are deeply intertwined across classes, which forces models to either underfit or learn highly complex, noisy boundaries.
+* **Petal Subspace:** High spatial separation. The three flower classes naturally isolate into distinct geometric zones. This clear separation makes it easy to observe the operational behavior of each model, visually highlighting how a linear model constructs straight hyperplanes while a decision tree builds axis-aligned, stepped bounding boxes.
+
+---
+
+## 9. Evaluation Metrics
 
 ### Classification — `iris_log_linsvm_dec.py`
 
