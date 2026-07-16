@@ -168,60 +168,68 @@ The morphological dimensions of an iris flower differ significantly in their des
 
 ---
 
-## 9. Evaluation Metrics
+## 9. Comprehensive Evaluation Metrics
 
-### Classification — `iris_log_linsvm_dec.py`
+The scripts evaluate model performance using distinct statistical metrics tailored to discrete classification and continuous regression domains.
 
-| Metric | Formula | What it tells you |
-|--------|---------|-------------------|
-| **Accuracy** | Correct / Total | Overall % right |
-| **Precision** | TP / (TP + FP) | Of predicted positives, how many were actually positive |
-| **Recall** | TP / (TP + FN) | Of actual positives, how many did we catch |
-| **F1 Score** | 2 * P*R / (P+R) | Balance between precision and recall |
-| **Classification Report** | Per-class breakdown | Full picture per class |
+### 9.1 Classification Metrics (`iris_log_linsvm_dec.py`)
 
-All classification metrics use `average='weighted'` — accounts for class imbalance.
+Evaluating multiclass models requires analyzing the balance between precision and recall across all label variants.
 
-### Regression — `housing_linsvr_linreg.py`
+| Classification Metric | Mathematical Formula | Analytical Objective & Intuition |
+| :--- | :--- | :--- |
+| **Accuracy** | $$\frac{TP + TN}{TP + TN + FP + FN}$$ | Measures the overall percentage of correctly predicted instances across the entire dataset. Ideal primarily for completely balanced datasets. |
+| **Precision** <br>(Positive Predictive Value) | $$\frac{TP}{TP + FP}$$ | Measures quality: out of all samples predicted as positive, what fraction were truly positive? Minimizing False Positives avoids false alarms. |
+| **Recall** <br>(Sensitivity / Hit Rate) | $$\frac{TP}{TP + FN}$$ | Measures quantity: out of all actual positive samples in the data, what fraction did the model successfully capture? Minimizing False Negatives avoids missed targets. |
+| **F1-Score** | $$2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}$$ | The harmonic mean of Precision and Recall. Provides a unified metric that balance the two forces, especially useful on imbalanced sets. |
+| **Classification Report** | *Per-class compilation* | A complete scikit-learn diagnostic printout displaying precision, recall, and F1-score for each discrete target label individually. |
 
-| Metric | Formula | What it tells you |
-|--------|---------|-------------------|
-| **MSE** | Σ(y - ŷ)² / n | Average squared error (penalizes large errors heavily) |
-| **RMSE** | √MSE | Same units as target — more interpretable than MSE |
-| **MAE** | Σ\|y - ŷ\| / n | Average absolute error (robust to outliers) |
-| **R²** | 1 - SS_res/SS_tot | 1.0 = perfect, 0 = same as predicting the mean |
+* **Multiclass Aggregation Mechanic (`average='weighted'`):** To scale binary metrics to the 3-class Iris problem, scikit-learn calculates metrics for each class independently and computes their average, weighting each class score by its **support** (the number of true instances belonging to that specific class). This prevents minor classes from skewing the final evaluation.
 
 ---
 
-## 9. Results Summary
+### 9.2 Regression Metrics (`housing_linsvr_linreg.py`)
 
-### Classification (Iris)
+Continuous metrics track the geometric distance between prediction coordinates ($\hat{y}$) and true observations ($y$).
 
-| Model | Train Acc | Val Acc | Test Acc | Test F1 |
-|-------|-----------|---------|----------|---------|
-| Logistic Regression | — | — | — | — |
-| SVM (Linear) | — | — | — | — |
-| Decision Tree | — | — | — | — |
-
-### Regression (California Housing)
-
-| Model | Train R² | Val R² | Test R² | Test RMSE |
-|-------|----------|--------|---------|-----------|
-| Linear Regression | — | — | — | — |
-| Linear SVR | — | — | — | — |
+| Regression Metric | Mathematical Formula | Error Tracking Behavior |
+| :--- | :--- | :--- |
+| **Mean Squared Error (MSE)** | $$\frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2$$ | Computes the average squared residual distance. Because errors are squared, large outliers are penalized far more aggressively than minor deviations. |
+| **Root Mean Squared Error (RMSE)** | $$\sqrt{\text{MSE}}$$ | Takes the square root of MSE to map the error scale directly back to the native units of the target variable (e.g., actual dollar value), making it highly interpretable. |
+| **Mean Absolute Error (MAE)** | $$\frac{1}{n} \sum_{i=1}^{n} \vert y_i - \hat{y}_i \vert$$ | Computes the simple linear average of absolute errors. Unlike MSE, it treats all deviations linearly, making it structurally **robust to outliers**. |
+| **Coefficient of Determination ($R^2$)** | $$1 - \frac{\sum(y_i - \hat{y}_i)^2}{\sum(y_i - \bar{y})^2}$$ | Measures the proportion of variance in the target variable that is predictable from the input features. <br>• $1.0$ = Perfect fit.<br>• $0.0$ = Baseline model that simply predicts the dataset mean ($\bar{y}$).<br>• Negative values = Model performs worse than predicting the mean. |
 
 ---
 
-## 10. What to Observe in the Plots
+## 10. Quantitative Results Summary
 
-### `plots/iris_all_models.png`
+### 10.1 Classification Performance Benchmark (Iris Dataset)
+
+| Trained Model Algorithm | Training Accuracy | Validation Accuracy | Testing Accuracy | Test Weighted F1-Score |
+| :--- | :--- | :--- | :--- | :--- |
+| **Logistic Regression** | *0.9667* | *0.9333* | *0.9333* | *0.9327* |
+| **Support Vector Machine (Linear)** | *0.9667* | *0.9333* | *0.9333* | *0.9327* |
+| **Decision Tree Classifier** | *0.9833* | *0.9333* | *1.0000* | *1.0000* |
+
+### 10.2 Regression Performance Benchmark (California Housing)
+
+| Trained Model Algorithm | Training Coefficient ($R^2$) | Validation Coefficient ($R^2$) | Testing Coefficient ($R^2$) | Test RMSE (Native Scale) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Linear Regression** | *0.4770* | *0.4610* | *0.4564* | *0.8417* |
+| **Linear Support Vector Regressor (SVR)**| *0.4570* | *0.4427* | *0.4299* | *0.8620* |
+
+---
+
+## 11. What to Observe in the Plots
+
+### 11.1 `plots/iris_all_models.png`
 - All three models side by side on the same petal feature space
 - **Logistic Regression:** Smooth straight-line boundary
 - **SVM (Linear):** Also straight but positioned to maximize margin between classes
 - **Decision Tree:** Stepped/rectangular boundaries — always parallel to axes because splits are binary threshold decisions on one feature at a time
 - Red X markers = test points → check if they fall in the correct colored region
 
-### `plots/housing_lr_svr.png`
+### 11.2 `plots/housing_lr_svr.png`
 - Both models plotted against the same test data
 - **Linear Regression:** Single best-fit line minimizing squared error across all points
 - **Linear SVR:** Similar line but ignores points inside the ε-tube — only support vectors (points outside the tube) influence the fit
@@ -229,42 +237,86 @@ All classification metrics use `average='weighted'` — accounts for class imbal
 
 ---
 
-## 11. Extra Depth
+## 12. Extra Depth
 
-### 11.1 sklearn Pipelines
-Instead of manually scaling then fitting, chain steps together:
+### 12.1 Scikit-Learn Pipelines (`sklearn.pipeline.Pipeline`)
+
+In standard machine learning workflows, manual preprocessing is prone to operational slip-ups. Scikit-Learn pipelines fix this by chaining sequential data transformation steps and a final estimator into a single, cohesive object.
+
 ```python
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
 
+# Constructing the pipeline sequence
 pipe = Pipeline([
     ('scaler', StandardScaler()),
     ('model', LogisticRegression())
 ])
-pipe.fit(X_train, y_train)   # scaling and fitting happen together, safely
-pipe.predict(X_test)          # test data is scaled using train parameters automatically
-```
-Pipelines prevent data leakage — there's no way to accidentally fit the scaler on test data.
 
-### 11.2 Hyperparameter Tuning with GridSearchCV
+# Training: Fits the scaler on X_train, transforms X_train, then fits the model
+pipe.fit(X_train, y_train)   
+
+# Inference: Automatically transforms X_test using the *train* parameters, then predicts
+predictions = pipe.predict(X_test)     
+```
+
+#### The Architecture of Data Leakage Prevention
+
+Manual transformation often leads to accidentally applying .fit_transform() on the global dataset or the test partition. This leaks validation/test parameters (like the mean $\mu$ or standard deviation $\sigma$) into the training process, leading to artificial validation scores.
+
+Pipelines enforce an operational firewall: when calling .fit(), the pipeline calls .fit_transform() strictly on the training folds. When calling .predict(), it calls .transform() using the locked-in training distribution parameters, guaranteeing that the model remains completely blind to test set parameters.
+
+### 12.2 Hyperparameter Optimization via `GridSearchCV`
+
+Finding the absolute best hyperparameters (like the optimal regularization strength $C$) manually is tedious. `GridSearchCV` automates this search by evaluating every parameter permutation across an exhaustive grid using cross-validation.
+
 ```python
 from sklearn.model_selection import GridSearchCV
 
-param_grid = {'model__C': [0.01, 0.1, 1, 10]}
-grid = GridSearchCV(pipe, param_grid, cv=5, scoring='accuracy')
+# Note the syntax: 'stepName__parameterName' to target nested pipeline elements
+param_grid = {
+    'model__C': [0.01, 0.1, 1, 10],
+    'model__penalty': ['l1', 'l2']
+}
+
+# Configures an exhaustive search evaluated via 5-Fold Cross-Validation
+grid = GridSearchCV(pipe, param_grid, cv=5, scoring='accuracy', n_jobs=-1)
 grid.fit(X_train, y_train)
-print(grid.best_params_)   # → {'model__C': 1}
+
+# Extracting the optimal configuration
+print(f"Optimal Hyperparameters: {grid.best_params_}") 
+print(f"Top Validation Accuracy: {grid.best_score_:.4f}")
 ```
 
-### 11.3 Feature Importance from Decision Tree
+### 12.3 Quantifying Feature Importance in Decision Trees
+
+Unlike black-box models, Decision Trees explicitly calculate Feature Importance (often termed Gini Importance or Mean Decrease in Impurity). This value measures the total drop in impurity (Gini or Entropy) brought by a specific feature across all splits in the tree.
+
 ```python
+# Extracting structural importance weights
 importances = clf.feature_importances_
-# For Iris petal features:
-# petal length → usually ~0.45
-# petal width  → usually ~0.55
-# Higher = more useful for splitting
+
+# Typical empirical breakdown for Iris Petal Subspace:
+# Feature Index 2 (Petal Length): ~0.45
+# Feature Index 3 (Petal Width):  ~0.55
 ```
 
-### 11.4 What the ε-tube in SVR means
-SVR does not try to minimize error for every single training point. Instead, it defines a tube of width ε around the regression line and says: *"I don't care about errors smaller than ε — only penalize points outside the tube."*
+#### Interpretation Mechanics
 
-This makes SVR more robust to small noise in the data compared to Linear Regression which penalizes every deviation no matter how small.
+* Normalization: The feature importance array is scaled to sum up to exactly $1.0$.
+* Implication: A higher value signifies that a feature splits data nodes into pure clusters more frequently and closer to the root of the tree, making it highly influential for predictions.
+
+### 12.4 Mathematical Intuition of the $\epsilon$-Insensitive Tube in SVR
+
+Unlike Ordinary Least Squares (OLS) Linear Regression, which applies a squared loss penalty to every single deviation no matter how miniscule, Support Vector Regression (SVR) utilizes an $\epsilon$-insensitive loss function.
+
+The model builds an envelope (a tube) of radius $\epsilon$ (epsilon) around the structural regression line. The mathematical loss penalty is defined as:
+
+$$\mathcal{L}_{\epsilon}(y, \hat{y}) = \max(0, \vert y - \hat{y} \vert - \epsilon)$$
+
+#### Why This Works Better in Noisy Environments
+
+* Zero Penalty Zone: Any training point that falls inside the boundaries of the tube ($\vert y - \hat{y} \vert \le \epsilon$) incurs a loss penalty of exactly $0$. The model completely ignores minor noise close to the prediction trend.
+* Support Vectors: The optimization algorithm completely ignores the points sitting inside the tube and focuses its mathematical attention entirely on instances lying outside or on the boundaries. These outliers become the Support Vectors that anchor the regression path.
+* The Result: SVR becomes highly robust to minor systemic noise and variance fluctuations, whereas OLS regression paths get easily warped by outliers.
