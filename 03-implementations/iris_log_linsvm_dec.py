@@ -45,7 +45,7 @@ print(f"Split → Train: {len(X_train)} | Val: {len(X_val)} | Test: {len(X_test)
 
 # ── 2. MODELS INITIALIZATION ─────────────────────────────────────────────────
 models = {
-    "Logistic Regression": LogisticRegression(multi_class='multinomial', max_iter=1000),
+    "Logistic Regression": LogisticRegression(max_iter=1000),
     "SVM (Linear kernel)": SVC(kernel='linear', probability=True),
     "Decision Tree":       DecisionTreeClassifier(max_depth=3)
 }
