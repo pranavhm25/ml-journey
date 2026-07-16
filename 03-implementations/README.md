@@ -239,40 +239,84 @@ Continuous metrics track the geometric distance between prediction coordinates (
 
 ## 12. Extra Depth
 
-### 12.1 sklearn Pipelines
-Instead of manually scaling then fitting, chain steps together:
+### 12.1 Scikit-Learn Pipelines (`sklearn.pipeline.Pipeline`)
+
+In standard machine learning workflows, manual preprocessing is prone to operational slip-ups. Scikit-Learn pipelines fix this by chaining sequential data transformation steps and a final estimator into a single, cohesive object.
+
 ```python
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
 
+# Constructing the pipeline sequence
 pipe = Pipeline([
     ('scaler', StandardScaler()),
     ('model', LogisticRegression())
 ])
-pipe.fit(X_train, y_train)   # scaling and fitting happen together, safely
-pipe.predict(X_test)          # test data is scaled using train parameters automatically
-```
-Pipelines prevent data leakage — there's no way to accidentally fit the scaler on test data.
 
-### 12.2 Hyperparameter Tuning with GridSearchCV
+# Training: Fits the scaler on X_train, transforms X_train, then fits the model
+pipe.fit(X_train, y_train)   
+
+# Inference: Automatically transforms X_test using the *train* parameters, then predicts
+predictions = pipe.predict(X_test)     
+```
+
+#### The Architecture of Data Leakage Prevention
+
+Manual transformation often leads to accidentally applying .fit_transform() on the global dataset or the test partition. This leaks validation/test parameters (like the mean $\mu$ or standard deviation $\sigma$) into the training process, leading to artificial validation scores.
+
+Pipelines enforce an operational firewall: when calling .fit(), the pipeline calls .fit_transform() strictly on the training folds. When calling .predict(), it calls .transform() using the locked-in training distribution parameters, guaranteeing that the model remains completely blind to test set parameters.
+
+### 12.2 Hyperparameter Optimization via `GridSearchCV`
+
+Finding the absolute best hyperparameters (like the optimal regularization strength $C$) manually is tedious. `GridSearchCV` automates this search by evaluating every parameter permutation across an exhaustive grid using cross-validation.
+
 ```python
 from sklearn.model_selection import GridSearchCV
 
-param_grid = {'model__C': [0.01, 0.1, 1, 10]}
-grid = GridSearchCV(pipe, param_grid, cv=5, scoring='accuracy')
+# Note the syntax: 'stepName__parameterName' to target nested pipeline elements
+param_grid = {
+    'model__C': [0.01, 0.1, 1, 10],
+    'model__penalty': ['l1', 'l2']
+}
+
+# Configures an exhaustive search evaluated via 5-Fold Cross-Validation
+grid = GridSearchCV(pipe, param_grid, cv=5, scoring='accuracy', n_jobs=-1)
 grid.fit(X_train, y_train)
-print(grid.best_params_)   # → {'model__C': 1}
+
+# Extracting the optimal configuration
+print(f"Optimal Hyperparameters: {grid.best_params_}") 
+print(f"Top Validation Accuracy: {grid.best_score_:.4f}")
 ```
 
-### 12.3 Feature Importance from Decision Tree
+### 12.3 Quantifying Feature Importance in Decision Trees
+
+Unlike black-box models, Decision Trees explicitly calculate Feature Importance (often termed Gini Importance or Mean Decrease in Impurity). This value measures the total drop in impurity (Gini or Entropy) brought by a specific feature across all splits in the tree.
+
 ```python
+# Extracting structural importance weights
 importances = clf.feature_importances_
-# For Iris petal features:
-# petal length → usually ~0.45
-# petal width  → usually ~0.55
-# Higher = more useful for splitting
+
+# Typical empirical breakdown for Iris Petal Subspace:
+# Feature Index 2 (Petal Length): ~0.45
+# Feature Index 3 (Petal Width):  ~0.55
 ```
 
-### 12.4 What the ε-tube in SVR means
-SVR does not try to minimize error for every single training point. Instead, it defines a tube of width ε around the regression line and says: *"I don't care about errors smaller than ε — only penalize points outside the tube."*
+#### Interpretation Mechanics
 
-This makes SVR more robust to small noise in the data compared to Linear Regression which penalizes every deviation no matter how small.
+* Normalization: The feature importance array is scaled to sum up to exactly $1.0$.
+* Implication: A higher value signifies that a feature splits data nodes into pure clusters more frequently and closer to the root of the tree, making it highly influential for predictions.
+
+### 12.4 Mathematical Intuition of the $\epsilon$-Insensitive Tube in SVR
+
+Unlike Ordinary Least Squares (OLS) Linear Regression, which applies a squared loss penalty to every single deviation no matter how miniscule, Support Vector Regression (SVR) utilizes an $\epsilon$-insensitive loss function.
+
+The model builds an envelope (a tube) of radius $\epsilon$ (epsilon) around the structural regression line. The mathematical loss penalty is defined as:
+
+$$\mathcal{L}_{\epsilon}(y, \hat{y}) = \max(0, \vert y - \hat{y} \vert - \epsilon)$$
+
+#### Why This Works Better in Noisy Environments
+
+* Zero Penalty Zone: Any training point that falls inside the boundaries of the tube ($\vert y - \hat{y} \vert \le \epsilon$) incurs a loss penalty of exactly $0$. The model completely ignores minor noise close to the prediction trend.
+* Support Vectors: The optimization algorithm completely ignores the points sitting inside the tube and focuses its mathematical attention entirely on instances lying outside or on the boundaries. These outliers become the Support Vectors that anchor the regression path.
+* The Result: SVR becomes highly robust to minor systemic noise and variance fluctuations, whereas OLS regression paths get easily warped by outliers.
