@@ -72,23 +72,42 @@ If you train a model in an environment running `scikit-learn==1.4` and attempt t
 
 ---
 
-## 2. Different Formats for Different Model Types
+## 2. Framework-Specific Model Storage Standards
 
-| Model Type | Best Format | Extension |
-|------------|-------------|-----------|
-| **sklearn models** | Joblib | `.joblib` |
-| **TensorFlow/Keras** | SavedModel or HDF5 | `.pb` / `.h5` |
-| **PyTorch** | TorchScript or state dict | `.pt` / `.pth` |
-| **XGBoost** | XGBoost native | `.json` / `.ubj` |
-| **LightGBM** | LightGBM native | `.txt` |
-| **Cross-platform** | ONNX | `.onnx` |
+Every major machine learning framework has built-in production persistence formats optimized for its unique computational graph structure and array handling.
 
-### TensorFlow save/load:
+---
+
+### Comparative Storage Architecture
+
+| Framework Engine | Production Standard Format | Native Extension | Architectural Blueprint & Implementation Details |
+| :--- | :--- | :--- | :--- |
+| **Scikit-Learn** | Joblib Serialization | `.joblib` | Stores numeric data structures directly. Ideal for memory-mapped arrays and multi-threaded CPU architectures. |
+| **TensorFlow / Keras** | **SavedModel** (Default) or HDF5 | Directory / `.h5` | SavedModel creates a comprehensive asset directory containing the compiled computational runtime graph (`saved_model.pb`) and explicit parameter weight checkpoints. |
+| **PyTorch** | **State Dictionary** or TorchScript | `.pth` / `.pt` | A Python dictionary mapping every tensor layer to its exact optimized weight matrix array. Compiled variants use TorchScript for production execution. |
+| **XGBoost** | Native JSON or Universal Binary JSON | `.json` / `.ubj` | Bypasses general serialization protocols entirely. Encodes tree paths, node gains, and boosting targets cleanly into raw language-agnostic tables. |
+| **LightGBM** | Native Text File Spec | `.txt` | Formats leaves and split thresholds into an optimized, human-readable text syntax that initializes in milliseconds. |
+| **Universal Ecosystem**| ONNX Representation | `.onnx` | Compiles deep networks and classical algorithms alike into serialized mathematical operators for deployment outside of Python. |
+
+---
+
+### Code Implementation Blocks
+
+#### 2.1 TensorFlow / Keras Pipeline Storage
+TensorFlow provides two primary persistence formats. The native **SavedModel** directory structure is highly recommended over the older monolithic HDF5 file format for production deployment because it natively encapsulates asset vocabularies and graph optimization signatures.
+
 ```python
-model.save('my_model')              # SavedModel format (folder)
-model.save('my_model.h5')           # HDF5 format
-loaded = tf.keras.models.load_model('my_model')
-```
+import tensorflow as tf
+
+# 1. SavedModel Production Directory Deployment (Recommended)
+# Generates a folder structure tracking graph operations, variables, and signatures
+model.save('production_model_directory')
+loaded_dir_model = tf.keras.models.load_model('production_model_directory')
+
+# 2. HDF5 Monolithic Storage Paradigm
+# Packs architecture definition and weight matrices into a single container file
+model.save('model_checkpoint.h5')
+loaded_h5_model = tf.keras.models.load_model('model_checkpoint.h5')
 
 ### PyTorch save/load:
 ```python
